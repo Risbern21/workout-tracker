@@ -1,8 +1,6 @@
-from operator import index
+from sqlalchemy import UUID, Column, Integer, String
 
-from sqlalchemy import UUID, Column, NotNullable, String, True_, null, true
-
-from app.db.base import Base
+from app.db.session import Base
 
 
 class User(Base):
@@ -12,3 +10,5 @@ class User(Base):
     email = Column(String, nullable=False, unique=True)
     username = Column(String, nullable=False)
     hashed_password = Column(String, nullable=False)
+    tier = Column(String, default=None)
+    years = Column(Integer, default=None)

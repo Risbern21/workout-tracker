@@ -3,7 +3,7 @@ from uuid import UUID
 from pydantic import BaseModel
 
 
-# for output purposes
+# for input purposes
 class ExcerciseBase(BaseModel):
     name: str
     description: str | None = None

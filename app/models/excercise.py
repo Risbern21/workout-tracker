@@ -1,6 +1,6 @@
 from sqlalchemy import UUID, Column, String
 
-from app.db.base import Base
+from app.db.session import Base
 
 
 class Excercise(Base):

@@ -1,19 +1,24 @@
 import os
 
+from dotenv import load_dotenv
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import declarative_base, sessionmaker
 
-SQLALCHEMY_DATABASE_NAME = os.getenv("PG_DB")
-if SQLALCHEMY_DATABASE_NAME is None:
+load_dotenv()
+
+DATABASE_URL = os.getenv("PG_DB")
+if DATABASE_URL is None:
+    print("unable to get env")
     os._exit(1)
 
+engine = create_engine(DATABASE_URL)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-engine = create_engine(SQLALCHEMY_DATABASE_NAME)
-session_local = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Base = declarative_base()
 
 
 def get_db():
-    db = session_local()
+    db = SessionLocal()
     try:
         yield db
     finally:

@@ -1,15 +1,92 @@
+from uuid import UUID, uuid4
+
+from fastapi import HTTPException, status
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from app.models.user.user import User
-from app.schemas.user.user import UserCreate
+from app.core.security import get_hashed_password
+from app.models.user import User
+from app.schemas.user import UserCreate
 
 
-def create_user(session: Session, user: UserCreate) -> User:
-    db_user = User(
-        username=user.username, email=user.email, hashed_password=user.password
-    )
+def create_user(user: UserCreate, db: Session) -> User:
+    try:
+        db_user = User(
+            id=uuid4(),
+            username=user.username,
+            email=user.email,
+            hashed_password=get_hashed_password(user.password),
+            tier=user.tier,
+            years=user.years,
+        )
 
-    session.add(db_user)
-    session.commit()
-    session.refresh(db_user)
-    return db_user
+        db.add(db_user)
+        db.commit()
+        db.refresh(db_user)
+        return db_user
+
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"unable to create a user {str(e)}",
+        )
+
+
+def get_user(id: UUID, db: Session) -> User:
+    try:
+        user = db.query(User).filter(User.id == id).first()
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="user not found"
+            )
+        return user
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"unable to fetch user {str(e)}",
+        )
+
+
+def update_user(id: UUID, user: UserCreate, db: Session):
+    try:
+        db.query(User).filter(User.id == id).update(
+            {
+                User.username: user.username,
+                User.hashed_password: get_hashed_password(user.password),
+                User.tier: user.tier,
+                User.years: user.years,
+            }
+        )
+
+    except Exception as e:
+        db.rollback()
+
+        if e == SQLAlchemyError:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="user not found"
+            )
+
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"unable to update user {str(e)}",
+        )
+
+
+def delete_user(id: UUID, db: Session):
+    try:
+        db_user = db.query(User).filter(User.id == id).first()
+        if not db_user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="no such user in database",
+            )
+        db.delete(db_user)
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"unable to delete user {str(e)}",
+        )
