@@ -4,7 +4,7 @@ from fastapi import HTTPException, status
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from app.core.security import get_hashed_password
+from app.core.security import get_password_hash
 from app.models.user import User
 from app.schemas.user import UserCreate
 
@@ -15,7 +15,7 @@ def create_user(user: UserCreate, db: Session) -> User:
             id=uuid4(),
             username=user.username,
             email=user.email,
-            hashed_password=get_hashed_password(user.password),
+            hashed_password=get_password_hash(user.password),
             tier=user.tier,
             years=user.years,
         )
