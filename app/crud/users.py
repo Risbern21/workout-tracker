@@ -1,6 +1,6 @@
 from uuid import UUID, uuid4
 
-from fastapi import HTTPException, status
+from fastapi import HTTPException, Response, status
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
@@ -41,6 +41,10 @@ def get_user(id: UUID, db: Session) -> User:
                 status_code=status.HTTP_404_NOT_FOUND, detail="user not found"
             )
         return user
+
+    except HTTPException:
+        raise
+
     except Exception as e:
         db.rollback()
         raise HTTPException(
@@ -54,11 +58,13 @@ def update_user(id: UUID, user: UserCreate, db: Session):
         db.query(User).filter(User.id == id).update(
             {
                 User.username: user.username,
-                User.hashed_password: get_hashed_password(user.password),
+                User.hashed_password: get_password_hash(user.password),
                 User.tier: user.tier,
                 User.years: user.years,
             }
         )
+
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
 
     except Exception as e:
         db.rollback()
@@ -84,6 +90,8 @@ def delete_user(id: UUID, db: Session):
             )
         db.delete(db_user)
         db.commit()
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
+
     except Exception as e:
         db.rollback()
         raise HTTPException(

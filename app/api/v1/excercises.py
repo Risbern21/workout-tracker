@@ -1,11 +1,10 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.crud import excercises
 from app.db.session import get_db
-from app.models import excercise
 from app.schemas.excercise import ExcerciseBase
 
 router = APIRouter(prefix="/excercises", tags=["excercises"])

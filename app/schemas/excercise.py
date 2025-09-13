@@ -14,3 +14,15 @@ class ExcerciseBase(BaseModel):
 # for creating a new Excercise
 class Excercise(ExcerciseBase):
     id: UUID
+
+
+class WorkoutBase(BaseModel):
+    user_id: UUID
+    excercise_id: UUID
+    reps: int
+    sets: int
+    rest: int | None = None
+
+
+class Workout(WorkoutBase):
+    id: UUID

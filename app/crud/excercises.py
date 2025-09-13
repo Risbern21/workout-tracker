@@ -6,8 +6,12 @@ from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models.excercise import Excercise
-from app.schemas.excercise import ExcerciseBase
+from app.models.excercise import Excercise, Workout
+from app.models.user import User
+from app.schemas.excercise import ExcerciseBase, WorkoutBase
+
+user_not_found_error = "user does not exist"
+excercise_not_found_error = "excercise does not exist"
 
 
 def create_excercise(excercise: ExcerciseBase, db: Session) -> Excercise:
@@ -39,7 +43,7 @@ def get_excercise(id: UUID, db: Session) -> Excercise:
         if not db_excercise:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="did not find the excercise",
+                detail=excercise_not_found_error,
             )
 
         return db_excercise
