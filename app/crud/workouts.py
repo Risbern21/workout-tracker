@@ -10,6 +10,8 @@ from app.models.excercise import Excercise, Workout
 from app.models.user import User
 from app.schemas.excercise import WorkoutBase
 
+workout_not_found_error = "workout not found"
+
 
 def create_workout(workout: WorkoutBase, db: Session) -> Workout:
     try:
@@ -54,6 +56,27 @@ def create_workout(workout: WorkoutBase, db: Session) -> Workout:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"unablet to create collection {str(e)}",
+        )
+
+
+def get_workout(w_id: UUID, db: Session) -> Workout:
+    try:
+        db_workout = db.query(Workout).filter(Workout.id == w_id).first()
+        if db_workout is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=workout_not_found_error,
+            )
+
+        return db_workout
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"unable to fetch workout {str(e)}",
         )
 
 
@@ -110,4 +133,26 @@ def update_workout(w_id: UUID, workout: WorkoutBase, db: Session):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"unable to update workout {str(e)}",
+        )
+
+
+def delete_workout(w_id: UUID, db: Session):
+    try:
+        db_workout = db.query(Workout).filter(Workout.id == w_id).delete()
+        if db_workout == 0:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=excercise_not_found_error,
+            )
+
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+    except HTTPException:
+        raise
+
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"unable to delete workout {str(e)}",
         )

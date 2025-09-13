@@ -5,6 +5,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.core.security import get_password_hash
+from app.crud.excercises import user_not_found_error
 from app.models.user import User
 from app.schemas.user import UserCreate
 
@@ -55,14 +56,25 @@ def get_user(id: UUID, db: Session) -> User:
 
 def update_user(id: UUID, user: UserCreate, db: Session):
     try:
-        db.query(User).filter(User.id == id).update(
-            {
-                User.username: user.username,
-                User.hashed_password: get_password_hash(user.password),
-                User.tier: user.tier,
-                User.years: user.years,
-            }
+        db_user = (
+            db.query(User)
+            .filter(User.id == id)
+            .update(
+                {
+                    User.username: user.username,
+                    User.hashed_password: get_password_hash(user.password),
+                    User.tier: user.tier,
+                    User.years: user.years,
+                }
+            )
         )
+        if db_user == 0:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=user_not_found_error,
+            )
+
+        db.commit()
 
         return Response(status_code=status.HTTP_204_NO_CONTENT)
 
