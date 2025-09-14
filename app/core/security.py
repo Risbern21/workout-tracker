@@ -23,8 +23,6 @@ def get_password_hash(password: str) -> str:
 def create_access_token(
     data: dict, expires_delta: Optional[timedelta] = None
 ) -> str:
-    print("data: ", data)
-
     if (
         ACCESS_TOKEN_EXPIRE_MINUTES is None
         or SECRET_KEY is None

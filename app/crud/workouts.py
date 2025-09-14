@@ -6,8 +6,9 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.crud.excercises import excercise_not_found_error, user_not_found_error
-from app.models.excercise import Excercise, Workout
+from app.models.excercise import Excercise
 from app.models.user import User
+from app.models.workout import Workout
 from app.schemas.excercise import WorkoutBase
 
 workout_not_found_error = "workout not found"
@@ -36,7 +37,6 @@ def create_workout(workout: WorkoutBase, db: Session) -> Workout:
             )
 
         db_workout = Workout(
-            id=uuid4(),
             user_id=workout.user_id,
             excercise_id=workout.excercise_id,
             reps=workout.reps,

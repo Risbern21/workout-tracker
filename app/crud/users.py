@@ -13,7 +13,6 @@ from app.schemas.user import UserCreate
 def create_user(user: UserCreate, db: Session) -> User:
     try:
         db_user = User(
-            id=uuid4(),
             username=user.username,
             email=user.email,
             hashed_password=get_password_hash(user.password),
@@ -34,14 +33,9 @@ def create_user(user: UserCreate, db: Session) -> User:
         )
 
 
-def get_user(id: UUID, db: Session) -> User:
+def get_user(current_user: User, db: Session) -> dict:
     try:
-        user = db.query(User).filter(User.id == id).first()
-        if not user:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="user not found"
-            )
-        return user
+        return {"id": current_user.id, "email": current_user.email}
 
     except HTTPException:
         raise
@@ -92,9 +86,15 @@ def update_user(id: UUID, user: UserCreate, db: Session):
         )
 
 
-def delete_user(id: UUID, db: Session):
+def delete_user(u_id: UUID, current_user: User, db: Session):
     try:
-        db_user = db.query(User).filter(User.id == id).first()
+        if current_user.id != u_id:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="you do not have necessary permissions",
+            )
+
+        db_user = db.query(User).filter(User.id == u_id).first()
         if not db_user:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,

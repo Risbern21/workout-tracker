@@ -1,6 +1,6 @@
 from operator import or_
 from typing import Sequence
-from uuid import UUID, uuid4
+from uuid import UUID
 
 from fastapi import HTTPException, Response, status
 from sqlalchemy import select
@@ -16,7 +16,6 @@ excercise_not_found_error = "excercise does not exist"
 def create_excercise(excercise: ExcerciseBase, db: Session) -> Excercise:
     try:
         db_excercise = Excercise(
-            id=uuid4(),
             name=excercise.name,
             description=excercise.description,
             muscle_group=excercise.muscle_group,
@@ -46,6 +45,9 @@ def get_excercise(e_id: UUID, db: Session) -> Excercise:
             )
 
         return db_excercise
+
+    except HTTPException:
+        raise
 
     except Exception as e:
         db.rollback()
