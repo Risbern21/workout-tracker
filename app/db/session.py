@@ -1,3 +1,4 @@
+import logging
 import os
 
 from dotenv import load_dotenv
@@ -6,9 +7,15 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 
 load_dotenv()
 
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s  - %(message)s"
+)
+
+logger = logging.getLogger(__name__)
+
 DATABASE_URL = os.getenv("PG_DB")
 if DATABASE_URL is None:
-    print("unable to get env")
+    logger.info("database url is none")
     os._exit(1)
 
 engine = create_engine(DATABASE_URL)
@@ -21,5 +28,7 @@ def get_db():
     db = SessionLocal()
     try:
         yield db
+    except Exception as e:
+        logger.info(f"{str(e)}")
     finally:
         db.close()
